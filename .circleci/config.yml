@@ -101,7 +101,7 @@ jobs:
 
       - run:
           name: Fastlane
-          command: bundle exec fastlane $FASTLANE_LANE
+          command: bundle exec fastlane adhoc
           working_directory: ios
 
       - store_artifacts:
