@@ -114,8 +114,6 @@ jobs:
     working_directory: ~/demo-react-native/android
     docker:
       - image: circleci/android:api-29-node
-    environment:
-      RUBY_VERSION: 2.6.10 
     steps:
       - checkout:
           path: ~/demo-react-native
