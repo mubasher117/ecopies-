@@ -1,86 +1,154 @@
-# Orb support is from version >= 2.1
 version: 2.1
-
-# Make sure you use the latest version of the Orb!
-orbs:
-  rn: react-native-community/react-native@7.1.0
-
-# Custom jobs which are not part of the Orb
 jobs:
-  checkout_code:
-    executor: rn/linux_js
+  node:
+    working_directory: ~/demo-react-native
+    docker:
+      - image: cimg/node:16.20.2
+
     steps:
       - checkout
+
+      - restore_cache:
+          key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
+
+      - restore_cache:
+          key: node-v1-{{ checksum "package.json" }}-{{ arch }}
+
+      - run: yarn install
+
+      - save_cache:
+          key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
+          paths:
+            - ~/.cache/yarn
+
+      - save_cache:
+          key: node-v1-{{ checksum "package.json" }}-{{ arch }}
+          paths:
+            - node_modules
+
+      - run:
+          name: jest tests
+          command: |
+            mkdir -p test-results/jest
+            yarn run test
+          environment:
+            JEST_JUNIT_OUTPUT: test-results/jest/junit.xml
+
       - persist_to_workspace:
-          root: .
-          paths: .
-  analyse_js:
-    executor: rn/linux_js
+          root: ~/demo-react-native
+          paths:
+            - node_modules
+
+      - store_test_results:
+          path: test-results
+
+      - store_artifacts:
+          path: test-results
+
+  macos-build-and-test:
+    working_directory: ~/demo-react-native
+    macos:
+      xcode: 13.4.1
+    environment:
+      FL_OUTPUT_DIR: output
+      FASTLANE_LANE: test
+
     steps:
+      - checkout
+      - restore_cache:
+          key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
+
+      - restore_cache:
+          key: node-v1-{{ checksum "package.json" }}-{{ arch }}
+
+      - run: yarn install
+
+      - save_cache:
+          key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
+          paths:
+            - ~/.cache/yarn
+
+      - save_cache:
+          key: node-v1-{{ checksum "package.json" }}-{{ arch }}
+          paths:
+            - node_modules
+
+      - restore_cache:
+          key: bundle-v1-{{ checksum "ios/Gemfile.lock" }}-{{ arch }}
+
+      #Pods directory is ignored to match default RN setup, but can also check them into source control
+      #https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
+      - restore_cache:
+          key: pods-v1-{{ checksum "ios/Podfile.lock" }}-{{ arch }}
+
+      - run: 
+          command: pod install
+          working_directory: ios
+
+      - run: 
+          command: bundle install
+          working_directory: ios
+
+      - save_cache:
+          key: bundle-v1-{{ checksum "ios/Gemfile.lock" }}-{{ arch }}
+          paths:
+            - vendor/bundle
+
+      - save_cache:
+          key: pods-v1-{{ checksum "ios/Podfile.lock" }}-{{ arch }}
+          paths:
+            - ios/Pods
+
+      - run:
+          name: Fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
+          working_directory: ios
+
+      - store_artifacts:
+          path: output
+          
+      - store_test_results:
+          path: output/scan
+            
+  android-build-and-test:
+    working_directory: ~/demo-react-native/android
+    docker:
+      - image: circleci/android:api-29-node
+    steps:
+      - checkout:
+          path: ~/demo-react-native
+
       - attach_workspace:
-          at: .
-      - rn/yarn_install
+          at: ~/demo-react-native
+
+      - restore_cache:
+          key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
+
+      - run: bundle install
+
+      - save_cache:
+          key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
+          paths:
+            - vendor/bundle
+
       - run:
-          name: Run ESLint
-          command: yarn eslint
-      - run:
-          name: Flow
-          command: yarn flow
-      - run:
-          name: Jest
-          command: yarn jest
+          name: fastlane tests
+          command: |
+            mkdir -p test-results/fastlane
+            bundle exec fastlane test
+            mv fastlane/report.xml test-results/fastlane
+
+      - store_test_results:
+          path: test-results
+
+      - store_artifacts:
+          path: test-results
 
 workflows:
-  test:
+  node-android-ios:
     jobs:
-      # Checkout the code and persist to the Workspace
-      # Note: This is a job which is defined above and not part of the Orb
-      - checkout_code
-
-      # Analyze the Javascript using ESLint, Flow, and Jest
-      # Note: This is a job which is defined above and not part of the Orb
-      - analyse_js:
+      - node
+      - macos-build-and-test:
           requires:
-            - checkout_code
-
-      # Build the Android app in debug mode
-      - rn/android_build:
-          name: build_android_debug
-          project_path: "android"
-          build_type: debug
-          requires:
-            - analyse_js
-
-      # Build and test the Android app in release mode
-      # Note: We split these into seperate jobs because we can build the Android app on a Linux machine and preserve the expensive MacOS executor minutes for when it's required
-      - rn/android_build:
-          name: build_android_release
-          project_path: "android"
-          build_type: release
-          requires:
-            - analyse_js
-      - rn/android_test:
-          detox_configuration: "android.emu.release"
-          requires:
-            - build_android_release
-
-
-      # Build the iOS app in release mode and do not run tests
-      - rn/ios_build:
-          name: build_ios_release
-          project_path: ios/Example.xcodeproj
-          device: "iPhone 11"
-          build_configuration: Release
-          scheme: Example
-          requires:
-            - analyse_js
-
-      # Build and test the iOS app in release mode
-      - rn/ios_build_and_test:
-          project_path: "ios/Example.xcodeproj"
-          device: "iPhone 11"
-          build_configuration: "Release"
-          scheme: "Example"
-          detox_configuration: "ios.sim.release"
-          requires:
-            - analyse_js
+            - node
+            
