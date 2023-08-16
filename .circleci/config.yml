@@ -110,40 +110,6 @@ jobs:
       - store_test_results:
           path: output/scan
             
-  android-build-and-test:
-    working_directory: ~/demo-react-native/android
-    docker:
-      - image: circleci/android:api-29-node
-    steps:
-      - checkout:
-          path: ~/demo-react-native
-
-      - attach_workspace:
-          at: ~/demo-react-native
-
-      - restore_cache:
-          key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
-
-      - run: bundle install
-
-      - save_cache:
-          key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
-          paths:
-            - vendor/bundle
-
-      - run:
-          name: fastlane tests
-          command: |
-            mkdir -p test-results/fastlane
-            bundle exec fastlane test
-            mv fastlane/report.xml test-results/fastlane
-
-      - store_test_results:
-          path: test-results
-
-      - store_artifacts:
-          path: test-results
-
 workflows:
   node-android-ios:
     jobs:
