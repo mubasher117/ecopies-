@@ -123,16 +123,6 @@ jobs:
       - attach_workspace:
           at: ~/demo-react-native
 
-      - restore_cache:
-          key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
-
-      - run: bundle install
-
-      - save_cache:
-          key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
-          paths:
-            - vendor/bundle
-
       - run:
           name: fastlane tests
           command: |
