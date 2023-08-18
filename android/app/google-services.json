@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "369845268940",
+    "project_id": "ecopies-1b552",
+    "storage_bucket": "ecopies-1b552.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369845268940:android:42f20053b95aa56312ed69",
+        "android_client_info": {
+          "package_name": "com.ecopies"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "369845268940-a6lk6o0mgs0i0fuaktd2dkvmdt08mvq5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ecopies",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "369845268940-1rcbsvm9frmc6ohai0otkujpuoc21nk7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArZpCCI-t-We6z-aiQ0V5Q8tRDjLLUcXE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "369845268940-1rcbsvm9frmc6ohai0otkujpuoc21nk7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "369845268940-0ba3mnhu9afcm1hshje89k7nv0k7u9e6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.reactjs.native.example.ecopies"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
