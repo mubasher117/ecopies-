@@ -12,6 +12,16 @@ import {it} from '@jest/globals';
 // Note: test renderer must be required after react-native.
 import renderer from 'react-test-renderer';
 
+// Mock the messaging module
+jest.mock('@react-native-firebase/messaging', () => {
+  return () => ({
+    registerDeviceForRemoteMessages: jest.fn(),
+    getToken: jest.fn(),
+    onMessage: jest.fn(),
+    setBackgroundMessageHandler: jest.fn(),
+  });
+});
+
 it('renders correctly', () => {
   renderer.create(<App />);
 });

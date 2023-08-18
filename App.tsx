@@ -1,36 +1,44 @@
 import React from 'react';
 import {Checkout} from './src/screens/Checkout/Checkout';
-import messaging from '@react-native-firebase/messaging';
+import messaging, {
+  FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
 import notifee from '@notifee/react-native';
 async function onAppBootstrap() {
   // Register the device with FCM
-  await messaging().registerDeviceForRemoteMessages();
+  try {
+    await messaging().registerDeviceForRemoteMessages();
 
-  // Get the token
-  const token = await messaging().getToken();
-  console.log(token);
-
+    // Get the token
+    const token = await messaging().getToken();
+    console.log(token);
+  } catch (error) {
+    console.log(error);
+  }
   // Save the token
   // await postToApi('/users/1234/tokens', { token });
 }
 function App(): JSX.Element {
   onAppBootstrap();
-  async function onMessageReceived(message) {
-    console.log(message.data);
-    const channelId = await notifee.createChannel({
-      id: 'default',
-      name: 'Default Channel',
-      sound: 'hollow',
-    });
+  async function onMessageReceived(
+    message: FirebaseMessagingTypes.RemoteMessage,
+  ) {
+    try {
+      await notifee.createChannel({
+        id: 'default',
+        name: 'Default Channel',
+      });
+    } catch (error) {
+      console.log(error);
+    }
 
     notifee.displayNotification({
-      title: message.data.title,
-      body: message.data.body,
+      title: message?.data?.title,
+      body: message?.data?.body,
       android: {
         channelId: 'default',
       },
     });
-    // notifee.displayNotification(JSON.parse(message.data.notifee));
   }
 
   messaging().onMessage(onMessageReceived);
