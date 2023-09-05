@@ -1,5 +1,12 @@
 apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
+project.ext.keyFiles = [
+        development: "keys.development.json",
+        production: "keys.production.json",
+        staging: "keys.staging.json"
+]
+
+apply from: project(':react-native-keys').projectDir.getPath() + "/RNKeys.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -80,6 +87,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+    }
+    packagingOptions {
+        pickFirst '**/*.so'
     }
     signingConfigs {
         debug {

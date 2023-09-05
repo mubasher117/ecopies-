@@ -1,10 +1,12 @@
 import React from 'react';
 import {Platform} from 'react-native';
-import {Checkout} from './src/screens/Checkout/Checkout';
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
 import notifee from '@notifee/react-native';
+import {MainNavigator} from './src/navigation/mainNavigation';
+import {ThemeProvider} from './src/providers/ThemeProvider';
+
 async function onAppBootstrap() {
   if (Platform.OS === 'ios') {
     return;
@@ -23,7 +25,7 @@ async function onAppBootstrap() {
   // Save the token
   // await postToApi('/users/1234/tokens', { token });
 }
-function App(): JSX.Element {
+function App(): React.JSX.Element {
   onAppBootstrap();
   async function onMessageReceived(
     message: FirebaseMessagingTypes.RemoteMessage,
@@ -49,7 +51,12 @@ function App(): JSX.Element {
     messaging().onMessage(onMessageReceived);
     messaging().setBackgroundMessageHandler(onMessageReceived);
   }
-  return <Checkout />;
+
+  return (
+    <ThemeProvider>
+      <MainNavigator />
+    </ThemeProvider>
+  );
 }
 
 export default App;
